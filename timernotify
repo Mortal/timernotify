@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import datetime
 import os
 import re
 import shutil
@@ -40,6 +41,8 @@ def main():
         parser.error("supply duration e.g. 1h30 or 8m45")
     if prog is None:
         raise SystemExit("notify-send is not installed")
+    dt = datetime.datetime.now() + datetime.timedelta(seconds=t)
+    print("Sleep until %s" % dt.strftime("%H:%M:%S"))
     time.sleep(t)
     os.execl(prog, prog, message)
 
