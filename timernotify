@@ -36,12 +36,25 @@ def main():
     args = parser.parse_args()
     prog = shutil.which("notify-send")
     message = " ".join(args.message) or "Time's up!"
-    t = parse_time(args.time)
-    if t is None:
-        parser.error("supply duration e.g. 1h30 or 8m45")
+    now = datetime.datetime.now()
+    if args.time and 1 <= args.time.count(":") <= 2:
+        try:
+            tm = datetime.time(*map(int, args.time.split(":")))
+        except ValueError:
+            parser.error("supply duration e.g. 1h30 or 8m45")
+            return
+        dt = datetime.datetime.combine(datetime.date.today(), tm)
+        if dt < now:
+            dt += datetime.timedelta(1)
+        t = int((dt - now).total_seconds())
+        assert t >= 0
+    else:
+        t = parse_time(args.time)
+        if t is None:
+            parser.error("supply duration e.g. 1h30 or 8m45")
+        dt = now + datetime.timedelta(seconds=t)
     if prog is None:
         raise SystemExit("notify-send is not installed")
-    dt = datetime.datetime.now() + datetime.timedelta(seconds=t)
     print("Sleep until %s" % dt.strftime("%H:%M:%S"))
     time.sleep(t)
     os.execl(prog, prog, message)
